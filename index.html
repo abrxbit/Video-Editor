@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Clipwell — a friendly video editor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;700&family=Poppins:wght@400;500;700&family=Oswald:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Merriweather:wght@400;700&family=Bebas+Neue&family=Raleway:wght@400;500;700&family=Nunito:wght@400;600;700&family=Fira+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{ --bg-app:#111219; --bg-panel:#191b26; --bg-elevated:#22242f; --bg-elevated-2:#2b2e3d; --border:#33364a; --border-soft:#2a2c3a; --text-primary:#f2f3f8; --text-secondary:#9297ad; --text-muted:#5f6376; --accent:#8b7cf6; --accent-dim:#8b7cf62b; --accent-2:#4fd1c5; --accent-2-dim:#4fd1c52b; --danger:#ff6f6f; --danger-dim:#ff6f6f26; --radius-sm:8px; --radius-md:14px; --radius-lg:22px; --font-display:'Space Grotesk', sans-serif; --font-body:'Inter', sans-serif; --rail-w:76px; --panel-w:360px; }
-  *{box-sizing:border-box;} html,body{height:100%;}
-  body{margin:0;background:var(--bg-app);color:var(--text-primary);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow:hidden;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;} html,body{height:100%;}
+  body{margin:0;background:var(--bg-app);color:var(--text-primary);font-family:var(--font-body);-webkit-font-smoothing:antialiased;overflow:hidden;touch-action:none;}
   ::selection{ background:var(--accent-dim); }
-  button{ font-family:inherit; cursor:pointer; } input, select{ font-family:inherit; }
+  button{ font-family:inherit; cursor:pointer; } input, select, textarea{ font-family:inherit; }
   #app{ display:grid; grid-template-rows:60px 1fr 168px; height:100vh; width:100vw; }
-  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-bottom:1px solid var(--border-soft); background:linear-gradient(180deg, #14151f, #111219); }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-bottom:1px solid var(--border-soft); background:linear-gradient(180deg, #14151f, #111219); flex-shrink:0; }
   .brand{ display:flex; align-items:center; gap:10px; }
   .brand-mark{ width:30px; height:30px; border-radius:9px; background:linear-gradient(135deg, var(--accent), var(--accent-2)); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; color:#12131a; font-size:15px; flex-shrink:0; }
   .brand-name{ font-family:var(--font-display); font-weight:600; font-size:17px; letter-spacing:0.2px; }
@@ -30,17 +31,20 @@
   .btn-ghost{ background:var(--bg-elevated); color:var(--text-primary); border:1px solid var(--border); }
   .btn-ghost:hover{ background:var(--bg-elevated-2); }
   .btn-danger{ background:var(--danger-dim); color:var(--danger); border:1px solid #ff6f6f40; }
+
   .workspace{ display:grid; grid-template-columns:var(--rail-w) 1fr var(--panel-w); min-height:0; }
-  .rail{ background:var(--bg-panel); border-right:1px solid var(--border-soft); display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 0; }
+  .rail{ background:var(--bg-panel); border-right:1px solid var(--border-soft); display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 0; overflow-y:auto; }
   .rail-btn{ width:52px; height:52px; border-radius:14px; background:transparent; border:1px solid transparent; color:var(--text-secondary); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:background .15s ease, color .15s ease; }
-  .rail-btn svg{ width:19px; height:19px; }
-  .rail-btn span{ font-size:9.5px; font-weight:600; letter-spacing:0.2px; }
+  .rail-btn svg{ width:19px; height:19px; pointer-events:none; }
+  .rail-btn span{ font-size:9.5px; font-weight:600; letter-spacing:0.2px; pointer-events:none; }
   .rail-btn:hover:not(:disabled){ background:var(--bg-elevated); color:var(--text-primary); }
   .rail-btn.active{ background:var(--accent-dim); color:var(--accent); border-color:#8b7cf640; }
   .rail-btn:disabled{ opacity:0.35; cursor:not-allowed; }
+
   .stage{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; background: radial-gradient(ellipse at 50% 0%, #1a1c28 0%, #101119 70%); min-height:0; padding:20px; }
-  .canvas-wrap{ position:relative; max-width:100%; max-height:calc(100% - 46px); display:flex; align-items:center; justify-content:center; background-image: linear-gradient(45deg, #1c1e29 25%, transparent 25%), linear-gradient(-45deg, #1c1e29 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1c1e29 75%), linear-gradient(-45deg, transparent 75%, #1c1e29 75%); background-size:20px 20px; background-position:0 0, 0 10px, 10px -10px, -10px 0px; background-color:#151621; border-radius:12px; box-shadow:0 20px 60px -20px #00000090, 0 0 0 1px var(--border-soft); }
-  #previewCanvas{ display:block; max-width:100%; max-height:100%; border-radius:12px; }
+  .canvas-wrap{ position:relative; max-width:100%; max-height:calc(100% - 46px); display:flex; align-items:center; justify-content:center;
+    background-image: linear-gradient(45deg, #1c1e29 25%, transparent 25%), linear-gradient(-45deg, #1c1e29 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1c1e29 75%), linear-gradient(-45deg, transparent 75%, #1c1e29 75%); background-size:20px 20px; background-position:0 0, 0 10px, 10px -10px, -10px 0px; background-color:#151621; border-radius:12px; box-shadow:0 20px 60px -20px #00000090, 0 0 0 1px var(--border-soft); }
+  #previewCanvas{ display:block; max-width:100%; max-height:100%; border-radius:12px; touch-action:none; }
   .empty-drop{ width:min(520px, 90%); border:2px dashed var(--border); border-radius:var(--radius-lg); padding:50px 30px; text-align:center; color:var(--text-secondary); cursor:pointer; background:var(--bg-panel); transition:border-color .15s ease, background .15s ease; }
   .empty-drop.dragover{ border-color:var(--accent); background:var(--accent-dim); }
   .empty-drop .icon{ width:52px; height:52px; margin:0 auto 16px; color:var(--accent); }
@@ -48,15 +52,17 @@
   .empty-drop p{ font-size:13px; line-height:1.6; margin:0; color:var(--text-secondary); }
   .empty-drop .hint{ margin-top:14px; font-size:11.5px; color:var(--text-muted); }
   #fileInput{ display:none; }
+
   .playbar{ height:46px; display:flex; align-items:center; gap:14px; width:100%; max-width:900px; padding:0 4px; }
-  .play-btn{ width:34px; height:34px; border-radius:50%; background:var(--bg-elevated); border:1px solid var(--border); color:var(--text-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .play-btn{ width:44px; height:44px; border-radius:50%; background:var(--bg-elevated); border:1px solid var(--border); color:var(--text-primary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .play-btn:hover{ background:var(--bg-elevated-2); }
-  .play-btn svg{ width:14px; height:14px; }
+  .play-btn svg{ width:16px; height:16px; }
   .time-readout{ font-size:12px; color:var(--text-secondary); font-variant-numeric:tabular-nums; white-space:nowrap; }
   .mini-vol{ display:flex; align-items:center; gap:6px; margin-left:auto; }
   .mini-vol svg{ width:16px; height:16px; color:var(--text-secondary); flex-shrink:0; }
   .mini-vol input[type=range]{ width:80px; }
-  .panel{ background:var(--bg-panel); border-left:1px solid var(--border-soft); overflow-y:auto; padding:18px 18px 30px; }
+
+  .panel{ background:var(--bg-panel); border-left:1px solid var(--border-soft); overflow-y:auto; padding:18px 18px 30px; position:relative; }
   .panel::-webkit-scrollbar{ width:7px; }
   .panel::-webkit-scrollbar-thumb{ background:var(--bg-elevated-2); border-radius:10px; }
   .panel-title{ font-family:var(--font-display); font-size:16px; font-weight:600; margin:0 0 6px; }
@@ -65,9 +71,9 @@
   .field-label{ display:flex; justify-content:space-between; font-size:12px; color:var(--text-secondary); margin-bottom:8px; font-weight:600; }
   .field-label .val{ color:var(--accent-2); font-variant-numeric:tabular-nums; }
   input[type=range]{ -webkit-appearance:none; width:100%; height:4px; border-radius:4px; background:var(--bg-elevated-2); outline:none; }
-  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:15px; height:15px; border-radius:50%; background:var(--accent); border:2px solid #fff2; cursor:pointer; box-shadow:0 2px 6px #0006; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); border:2px solid #fff2; cursor:pointer; box-shadow:0 2px 6px #0006; }
   .btn-row{ display:flex; flex-wrap:wrap; gap:8px; }
-  .chip{ padding:8px 13px; border-radius:20px; background:var(--bg-elevated); border:1px solid var(--border); color:var(--text-secondary); font-size:12.5px; font-weight:600; }
+  .chip{ padding:10px 14px; border-radius:20px; background:var(--bg-elevated); border:1px solid var(--border); color:var(--text-secondary); font-size:12.5px; font-weight:600; }
   .chip:hover{ background:var(--bg-elevated-2); color:var(--text-primary); }
   .chip.active{ background:var(--accent-dim); border-color:#8b7cf660; color:var(--accent); }
   .preset-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:20px; }
@@ -76,44 +82,46 @@
   .preset-card:hover{ color:var(--text-primary); border-color:#ffffff30; }
   .preset-card.active{ border-color:var(--accent); color:var(--accent-2); }
   hr.sep{ border:none; border-top:1px solid var(--border-soft); margin:20px 0; }
+
   .text-layer-card{ background:var(--bg-elevated); border:1px solid var(--border-soft); border-radius:14px; padding:12px; margin-bottom:12px; }
   .text-layer-card.selected{ border-color:var(--accent); box-shadow:0 0 0 1px #8b7cf650; }
-  .text-layer-card textarea{ width:100%; resize:none; background:var(--bg-panel); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; font-family:inherit; min-height:60px; margin-bottom:10px; }
+  .text-layer-card textarea{ width:100%; resize:none; background:var(--bg-panel); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; padding:10px 12px; font-size:13px; font-family:inherit; min-height:60px; margin-bottom:10px; }
   .row-2{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
   .row-3{ display:grid; grid-template-columns:1fr 1fr auto; gap:8px; align-items:center; margin-bottom:10px; }
-  .row-4{ display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; margin-bottom:10px; }
-  select.mini-select{ background:var(--bg-panel); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; padding:7px 8px; font-size:12px; width:100%; }
-  input[type=color]{ width:36px; height:32px; border:1px solid var(--border); border-radius:8px; background:none; padding:2px; cursor:pointer; }
-  .icon-btn-sm{ width:32px; height:32px; border-radius:8px; background:var(--bg-panel); border:1px solid var(--border); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; }
+  select.mini-select{ background:var(--bg-panel); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:12px; width:100%; }
+  input[type=color]{ width:40px; height:36px; border:1px solid var(--border); border-radius:8px; background:none; padding:2px; cursor:pointer; }
+  .icon-btn-sm{ width:36px; height:36px; border-radius:8px; background:var(--bg-panel); border:1px solid var(--border); color:var(--text-secondary); display:flex; align-items:center; justify-content:center; }
   .icon-btn-sm:hover{ color:var(--text-primary); }
-  .icon-btn-sm svg{ width:14px; height:14px; }
+  .icon-btn-sm svg{ width:16px; height:16px; }
   .toggle-btn.on{ background:var(--accent-dim); color:var(--accent); border-color:#8b7cf660; }
-  .add-text-btn{ width:100%; padding:12px; border-radius:12px; background:var(--accent-dim); border:1px dashed #8b7cf670; color:var(--accent); font-weight:600; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:16px; }
+  .add-text-btn{ width:100%; padding:14px; border-radius:12px; background:var(--accent-dim); border:1px dashed #8b7cf670; color:var(--accent); font-weight:600; font-size:13px; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:16px; }
   .add-text-btn:hover{ background:#8b7cf640; }
   .no-video-msg{ font-size:12.5px; color:var(--text-muted); text-align:center; padding:30px 10px; line-height:1.6; }
   .info-line{ font-size:11.5px; color:var(--text-muted); margin-top:-8px; margin-bottom:18px; }
   .align-btns{ display:flex; gap:4px; }
-  .align-btns .chip{ padding:6px 10px; font-size:11px; }
+  .align-btns .chip{ padding:8px 12px; font-size:11px; }
+
   .timeline-area{ background:var(--bg-panel); border-top:1px solid var(--border-soft); padding:12px 24px 16px; display:flex; flex-direction:column; gap:8px; }
   .timeline-topline{ display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--text-muted); }
   .timeline-topline .trim-readout{ color:var(--text-secondary); font-variant-numeric:tabular-nums; }
-  .timeline-track{ position:relative; height:64px; background:var(--bg-elevated); border-radius:10px; overflow:visible; border:1px solid var(--border-soft); user-select:none; }
+  .timeline-track{ position:relative; height:64px; background:var(--bg-elevated); border-radius:10px; overflow:visible; border:1px solid var(--border-soft); user-select:none; touch-action:none; }
   .thumb-strip{ position:absolute; inset:0; display:flex; border-radius:10px; overflow:hidden; }
   .thumb-cell{ flex:1; background-size:cover; background-position:center; border-right:1px solid #00000030; }
   .thumb-cell:last-child{ border-right:none; }
   .trim-mask{ position:absolute; top:0; bottom:0; background:#0a0a0ecc; z-index:3; }
   .trim-mask.left{ left:0; border-radius:10px 0 0 10px; }
   .trim-mask.right{ right:0; border-radius:0 10px 10px 0; }
-  .trim-handle{ position:absolute; top:-1px; bottom:-1px; width:14px; background:var(--accent); border-radius:6px; z-index:5; cursor:ew-resize; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0006; }
+  .trim-handle{ position:absolute; top:-1px; bottom:-1px; width:18px; background:var(--accent); border-radius:6px; z-index:5; cursor:ew-resize; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px #0006; }
   .trim-handle::after{ content:''; width:3px; height:20px; background:#ffffffaa; border-radius:3px; }
   .trim-handle.left{ transform:translateX(-100%); border-radius:6px 2px 2px 6px; }
   .trim-handle.right{ transform:translateX(0%); border-radius:2px 6px 6px 2px; }
   .selection-border{ position:absolute; top:0; bottom:0; border-top:2px solid var(--accent); border-bottom:2px solid var(--accent); z-index:4; pointer-events:none; }
   .playhead{ position:absolute; top:-6px; bottom:-6px; width:2px; background:var(--accent-2); z-index:6; pointer-events:none; box-shadow:0 0 6px #4fd1c5aa; }
   .playhead::before{ content:''; position:absolute; top:-4px; left:50%; transform:translateX(-50%); width:10px; height:10px; background:var(--accent-2); border-radius:50%; }
-  .export-overlay{ position:fixed; inset:0; background:#0a0a0ed9; backdrop-filter:blur(4px); z-index:50; display:none; align-items:center; justify-content:center; }
+
+  .export-overlay{ position:fixed; inset:0; background:#0a0a0ed9; backdrop-filter:blur(4px); z-index:50; display:none; align-items:center; justify-content:center; padding:20px; }
   .export-overlay.show{ display:flex; }
-  .export-card{ width:400px; background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; text-align:center; }
+  .export-card{ width:400px; background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; text-align:center; max-width:100%; }
   .export-card .spin{ width:44px; height:44px; margin:0 auto 18px; border-radius:50%; border:3px solid var(--bg-elevated-2); border-top-color:var(--accent); animation:spin 0.9s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
   .export-card h3{ font-family:var(--font-display); margin:0 0 8px; font-size:17px; }
@@ -121,7 +129,52 @@
   .progress-track{ height:8px; background:var(--bg-elevated-2); border-radius:8px; overflow:hidden; margin-bottom:20px; }
   .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius:8px; transition:width .1s linear; }
   .export-card .done-icon{ width:52px; height:52px; margin:0 auto 16px; color:var(--accent-2); }
-  .export-actions{ display:flex; gap:10px; justify-content:center; }
+  .export-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+  .panel-handle{ display:none; }
+  .panel-close-mobile{ display:none; }
+  .panel-overlay{ display:none; }
+
+  /* ===================== MOBILE RESPONSIVE ===================== */
+  @media (max-width: 768px) {
+    :root{ --rail-w:100%; --panel-w:100%; }
+    body{ touch-action:manipulation; }
+    #app{ grid-template-rows:auto 1fr auto; }
+    .topbar{ height:auto; padding:10px 14px; gap:8px; flex-wrap:wrap; }
+    .brand-tag{ display:none; }
+    .topbar-right{ flex-wrap:wrap; justify-content:flex-end; gap:6px; width:100%; }
+    .file-name-pill{ max-width:120px; font-size:11px; padding:5px 10px; }
+    select.res-select{ padding:6px 8px; font-size:11px; }
+    .btn{ padding:8px 14px; font-size:12px; }
+    .workspace{ grid-template-columns:1fr; grid-template-rows:auto 1fr auto; min-height:0; }
+    .rail{ flex-direction:row; width:100%; height:auto; padding:8px; gap:6px; border-right:none; border-bottom:1px solid var(--border-soft); overflow-x:auto; -webkit-overflow-scrolling:touch; justify-content:flex-start; }
+    .rail-btn{ width:auto; height:44px; flex-direction:row; padding:0 14px; gap:6px; border-radius:10px; flex-shrink:0; }
+    .rail-btn svg{ width:17px; height:17px; }
+    .rail-btn span{ font-size:11px; }
+    .stage{ padding:10px; min-height:180px; }
+    .canvas-wrap{ max-height:calc(100% - 40px); }
+    .playbar{ height:40px; gap:10px; }
+    .play-btn{ width:40px; height:40px; }
+    .time-readout{ font-size:11px; }
+    .mini-vol input[type=range]{ width:60px; }
+
+    .panel{ position:fixed; bottom:0; left:0; right:0; width:100%; max-height:60vh; height:auto; border-left:none; border-top:1px solid var(--border-soft); border-radius:16px 16px 0 0; z-index:40; transform:translateY(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); padding:0; overflow:hidden; display:flex; flex-direction:column; }
+    .panel.open{ transform:translateY(0); }
+    .panel-handle{ display:flex; width:100%; justify-content:center; padding:10px 0 6px; cursor:pointer; flex-shrink:0; }
+    .panel-handle::before{ content:''; width:40px; height:4px; background:var(--border); border-radius:4px; }
+    .panel-close-mobile{ display:flex; position:absolute; top:8px; right:12px; z-index:2; background:var(--bg-elevated-2); }
+    .panel-scroll-content{ overflow-y:auto; padding:0 18px 24px; flex:1; -webkit-overflow-scrolling:touch; }
+
+    .panel-overlay{ display:block; position:fixed; inset:0; background:#00000080; z-index:35; opacity:0; pointer-events:none; transition:opacity .3s ease; }
+    .panel-overlay.show{ opacity:1; pointer-events:auto; }
+
+    .timeline-area{ padding:8px 12px 12px; z-index:5; position:relative; background:var(--bg-panel); }
+    .timeline-track{ height:56px; }
+    .trim-handle{ width:22px; }
+    .export-card{ width:100%; padding:24px 20px; }
+    .text-layer-card textarea{ font-size:16px; } /* prevent iOS zoom */
+    input[type=range]::-webkit-slider-thumb{ width:22px; height:22px; }
+  }
 </style>
 <base target="_blank">
 </head>
@@ -135,7 +188,7 @@
       <select class="res-select" id="fpsSelect" title="Export frame rate" disabled></select>
       <select class="res-select" id="resSelect" title="Choose quality" disabled></select>
       <button class="btn btn-primary" id="exportBtn" disabled>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export video
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export
       </button>
     </div>
   </div>
@@ -167,7 +220,13 @@
         </div>
       </div>
     </div>
-    <div class="panel" id="panel"></div>
+    <div class="panel" id="panel">
+      <div class="panel-handle" id="panelHandle"></div>
+      <button class="icon-btn-sm panel-close-mobile" id="panelCloseMobile" title="Close panel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="panel-scroll-content" id="panelScroll"></div>
+    </div>
   </div>
   <div class="timeline-area">
     <div class="timeline-topline"><span>Timeline</span><span class="trim-readout" id="trimReadout">Keeping 0:00 – 0:00 · Clip length 0:00</span></div>
@@ -182,6 +241,7 @@
     </div>
   </div>
 </div>
+<div class="panel-overlay" id="panelOverlay"></div>
 <div class="export-overlay" id="exportOverlay"><div class="export-card" id="exportCard"></div></div>
 <script>
 (function(){
@@ -238,9 +298,18 @@ const $ = sel => document.querySelector(sel);
 const dropZone = $('#dropZone'), fileInput = $('#fileInput'), canvasWrap = $('#canvasWrap'), canvas = $('#previewCanvas'), ctx = canvas.getContext('2d');
 const playbar = $('#playbar'), playBtn = $('#playBtn'), playIcon = $('#playIcon'), timeReadout = $('#timeReadout'), quickVol = $('#quickVol');
 const resSelect = $('#resSelect'), formatSelect = $('#formatSelect'), fpsSelect = $('#fpsSelect'), exportBtn = $('#exportBtn'), fileNamePill = $('#fileNamePill');
-const rail = $('#rail'), panel = $('#panel'), timelineTrack = $('#timelineTrack'), thumbStrip = $('#thumbStrip');
+const rail = $('#rail'), panel = $('#panel'), panelScroll = $('#panelScroll'), panelHandle = $('#panelHandle'), panelCloseMobile = $('#panelCloseMobile'), panelOverlay = $('#panelOverlay');
+const timelineTrack = $('#timelineTrack'), thumbStrip = $('#thumbStrip');
 const maskLeft = $('#maskLeft'), maskRight = $('#maskRight'), selBorder = $('#selBorder'), handleLeft = $('#handleLeft'), handleRight = $('#handleRight'), playhead = $('#playhead');
 const trimReadout = $('#trimReadout'), exportOverlay = $('#exportOverlay'), exportCard = $('#exportCard');
+
+function isMobile(){ return window.innerWidth <= 768; }
+
+function openPanel(){ if(isMobile()){ panel.classList.add('open'); panelOverlay.classList.add('show'); } }
+function closePanel(){ if(isMobile()){ panel.classList.remove('open'); panelOverlay.classList.remove('show'); } }
+panelHandle.addEventListener('click', closePanel);
+panelCloseMobile.addEventListener('click', closePanel);
+panelOverlay.addEventListener('click', closePanel);
 
 function fmtTime(sec){ if(!isFinite(sec)||sec<0)sec=0; const m=Math.floor(sec/60), s=Math.floor(sec%60), ms=Math.floor((sec%1)*100); return m+':'+String(s).padStart(2,'0')+'.'+String(ms).padStart(2,'0'); }
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
@@ -399,29 +468,38 @@ setInterval(()=>{ if(state.videoLoaded && !state.isExporting) updateTimeUI(); },
 quickVol.addEventListener('input', ()=>{ state.volume=+quickVol.value; state.muted=state.volume===0; if(state.gainNode) state.gainNode.gain.value=state.muted?0:state.volume/100; syncAudioPanelUI(); });
 
 rail.addEventListener('click', e=>{ const btn=e.target.closest('.rail-btn'); if(!btn||btn.disabled) return; setActiveTool(btn.dataset.tool); });
-function setActiveTool(tool){ state.activeTool=tool; rail.querySelectorAll('.rail-btn').forEach(b=>b.classList.toggle('active', b.dataset.tool===tool)); renderPanel(); }
+function setActiveTool(tool){
+  state.activeTool=tool;
+  rail.querySelectorAll('.rail-btn').forEach(b=>b.classList.toggle('active', b.dataset.tool===tool));
+  renderPanel();
+  openPanel();
+}
+
+function setPanelHTML(html){
+  panelScroll.innerHTML = html;
+}
 
 function renderPanel(){
-  if(!state.videoLoaded && state.activeTool!=='upload'){ panel.innerHTML=`<div class="no-video-msg">Upload a video to unlock this tool.</div>`; return; }
+  if(!state.videoLoaded && state.activeTool!=='upload'){ setPanelHTML(`<div class="no-video-msg">Upload a video to unlock this tool.</div>`); return; }
   const renderers={upload:renderUploadPanel, trim:renderTrimPanel, text:renderTextPanel, filters:renderFiltersPanel, speed:renderSpeedPanel, transform:renderTransformPanel, audio:renderAudioPanel};
   (renderers[state.activeTool]||renderUploadPanel)();
 }
 
 function renderUploadPanel(){
-  panel.innerHTML=`<div class="panel-title">Your video</div>
+  setPanelHTML(`<div class="panel-title">Your video</div>
     <div class="panel-tip">Upload a clip to get started. Once loaded, use the tools on the left to trim, add text, apply filters, change speed, rotate, or adjust volume — then export in any resolution from 144p to 4K at up to 60 FPS.</div>
     ${state.videoLoaded?`<div class="field"><div class="field-label"><span>File</span></div><div class="info-line" style="margin:0;">${state.fileName}</div></div>
     <div class="field"><div class="field-label"><span>Original resolution</span></div><div class="info-line" style="margin:0;">${state.videoW} x ${state.videoH}px - ${fmtTime(state.duration)} long</div></div>`:''}
-    <button class="btn btn-ghost" style="width:100%; justify-content:center;" id="uploadAnotherBtn">${state.videoLoaded?'Replace video':'Choose a video file'}</button>`;
+    <button class="btn btn-ghost" style="width:100%; justify-content:center;" id="uploadAnotherBtn">${state.videoLoaded?'Replace video':'Choose a video file'}</button>`);
   $('#uploadAnotherBtn').addEventListener('click', pickFile);
 }
 
 function renderTrimPanel(){
-  panel.innerHTML=`<div class="panel-title">Trim</div>
+  setPanelHTML(`<div class="panel-title">Trim</div>
     <div class="panel-tip">Drag the purple handles on the timeline to choose which part to keep.</div>
     <div class="field"><div class="field-label"><span>Start</span><span class="val">${fmtTime(state.trimStart)}</span></div><div class="btn-row"><button class="chip" id="trimStartNow">Set to playhead</button><button class="chip" id="trimStartMinus">-0.5s</button><button class="chip" id="trimStartPlus">+0.5s</button></div></div>
     <div class="field"><div class="field-label"><span>End</span><span class="val">${fmtTime(state.trimEnd)}</span></div><div class="btn-row"><button class="chip" id="trimEndNow">Set to playhead</button><button class="chip" id="trimEndMinus">-0.5s</button><button class="chip" id="trimEndPlus">+0.5s</button></div></div>
-    <hr class="sep"><button class="btn btn-ghost" style="width:100%; justify-content:center;" id="resetTrim">Reset to full clip</button>`;
+    <hr class="sep"><button class="btn btn-ghost" style="width:100%; justify-content:center;" id="resetTrim">Reset to full clip</button>`);
   $('#trimStartNow').onclick=()=>{state.trimStart=clamp(state.video.currentTime,0,state.trimEnd-0.1);afterTrimChange();};
   $('#trimEndNow').onclick=()=>{state.trimEnd=clamp(state.video.currentTime,state.trimStart+0.1,state.duration);afterTrimChange();};
   $('#trimStartMinus').onclick=()=>{state.trimStart=clamp(state.trimStart-0.5,0,state.trimEnd-0.1);afterTrimChange();};
@@ -444,7 +522,7 @@ function renderTextPanel(){
     state.texts.forEach(t=>{
       const selected=t.id===state.selectedTextId;
       html+=`<div class="text-layer-card ${selected?'selected':''}" data-id="${t.id}">
-        <textarea data-field="text" data-id="${t.id}" placeholder="Type something...">${t.text}</textarea>
+        <textarea data-field="text" data-id="${t.id}" placeholder="Type something...">${t.text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea>
         <div class="row-3">
           <select class="mini-select" data-field="font" data-id="${t.id}">${FONT_OPTIONS.map(f=>`<option value="${f.v}" ${t.font===f.v?'selected':''}>${f.label}</option>`).join('')}</select>
           <input type="color" data-field="color" data-id="${t.id}" value="${t.color}">
@@ -485,17 +563,17 @@ function renderTextPanel(){
       </div>`;
     });
   }
-  panel.innerHTML=html;
+  setPanelHTML(html);
 
   $('#addTextBtn').onclick=()=>{
     const id=state.nextTextId++;
     state.texts.push({id, text:'New text', xFrac:0.5, yFrac:0.5, sizeFrac:0.08, color:'#ffffff', font:FONT_OPTIONS[0].v, bold:true, opacity:100, align:'center', strokeColor:'#000000', strokeWidth:0, backgroundColor:'transparent', letterSpacing:0, lineHeight:1.2});
     state.selectedTextId=id; renderTextPanel(); drawStaticFrame();
   };
-  panel.querySelectorAll('.text-layer-card').forEach(card=>{
+  panelScroll.querySelectorAll('.text-layer-card').forEach(card=>{
     card.addEventListener('click', e=>{ if(e.target.closest('[data-field]')||e.target.closest('[data-action]')) return; state.selectedTextId=+card.dataset.id; renderTextPanel(); drawStaticFrame(); });
   });
-  panel.querySelectorAll('[data-field]').forEach(el=>{
+  panelScroll.querySelectorAll('[data-field]').forEach(el=>{
     el.addEventListener('input', ()=>{
       const id=+el.dataset.id; const t=state.texts.find(x=>x.id===id); if(!t) return;
       const field=el.dataset.field;
@@ -512,7 +590,7 @@ function renderTextPanel(){
       if(!state.isPlaying) drawStaticFrame();
     });
   });
-  panel.querySelectorAll('[data-action]').forEach(el=>{
+  panelScroll.querySelectorAll('[data-action]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const id=+el.dataset.id; const action=el.dataset.action;
       if(action==='delete'){ state.texts=state.texts.filter(x=>x.id!==id); if(state.selectedTextId===id) state.selectedTextId=null; renderTextPanel(); drawStaticFrame(); }
@@ -525,7 +603,7 @@ function renderTextPanel(){
 
 function renderFiltersPanel(){
   const f=state.filters;
-  panel.innerHTML=`<div class="panel-title">Filters</div>
+  setPanelHTML(`<div class="panel-title">Filters</div>
     <div class="panel-tip">Tap a preset or fine-tune sliders. Changes apply instantly.</div>
     <div class="preset-grid">${FILTER_PRESETS.map(p=>`<div class="preset-card ${state.activeFilterPreset===p.id?'active':''}" data-preset="${p.id}"><div class="swatch" style="background:${p.swatch};"></div>${p.label}</div>`).join('')}</div>
     <div class="field"><div class="field-label"><span>Brightness</span><span class="val">${f.brightness}%</span></div><input type="range" min="50" max="150" value="${f.brightness}" data-filter="brightness"></div>
@@ -534,15 +612,15 @@ function renderFiltersPanel(){
     <div class="field"><div class="field-label"><span>Black & white</span><span class="val">${f.grayscale}%</span></div><input type="range" min="0" max="100" value="${f.grayscale}" data-filter="grayscale"></div>
     <div class="field"><div class="field-label"><span>Sepia warmth</span><span class="val">${f.sepia}%</span></div><input type="range" min="0" max="100" value="${f.sepia}" data-filter="sepia"></div>
     <div class="field"><div class="field-label"><span>Blur</span><span class="val">${f.blur}</span></div><input type="range" min="0" max="20" value="${f.blur}" data-filter="blur"></div>
-    <hr class="sep"><button class="btn btn-ghost" style="width:100%; justify-content:center;" id="resetFilters">Reset filters</button>`;
-  panel.querySelectorAll('[data-preset]').forEach(el=>{
+    <hr class="sep"><button class="btn btn-ghost" style="width:100%; justify-content:center;" id="resetFilters">Reset filters</button>`);
+  panelScroll.querySelectorAll('[data-preset]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const preset=FILTER_PRESETS.find(p=>p.id===el.dataset.preset);
       state.filters=Object.assign({brightness:100,contrast:100,saturation:100,grayscale:0,sepia:0,blur:0}, preset.values);
       state.activeFilterPreset=preset.id; renderFiltersPanel(); if(!state.isPlaying) drawStaticFrame();
     });
   });
-  panel.querySelectorAll('[data-filter]').forEach(el=>{
+  panelScroll.querySelectorAll('[data-filter]').forEach(el=>{
     el.addEventListener('input', ()=>{
       state.filters[el.dataset.filter]=+el.value; state.activeFilterPreset=null;
       const valEl=el.closest('.field')?.querySelector('.val'); if(valEl) valEl.textContent=el.value+(el.dataset.filter==='blur'?'':'%');
@@ -554,10 +632,10 @@ function renderFiltersPanel(){
 
 function renderSpeedPanel(){
   const speeds=[0.5,0.75,1,1.25,1.5,2];
-  panel.innerHTML=`<div class="panel-title">Speed</div>
+  setPanelHTML(`<div class="panel-title">Speed</div>
     <div class="panel-tip">Slow down for drama or speed up for pace. Exported length changes accordingly.</div>
-    <div class="btn-row">${speeds.map(s=>`<button class="chip ${state.playbackRate===s?'active':''}" data-speed="${s}">${s}x</button>`).join('')}</div>`;
-  panel.querySelectorAll('[data-speed]').forEach(el=>{
+    <div class="btn-row">${speeds.map(s=>`<button class="chip ${state.playbackRate===s?'active':''}" data-speed="${s}">${s}x</button>`).join('')}</div>`);
+  panelScroll.querySelectorAll('[data-speed]').forEach(el=>{
     el.addEventListener('click', ()=>{
       state.playbackRate=+el.dataset.speed;
       if(state.video) state.video.playbackRate=state.playbackRate;
@@ -567,10 +645,10 @@ function renderSpeedPanel(){
 }
 
 function renderTransformPanel(){
-  panel.innerHTML=`<div class="panel-title">Rotate & flip</div>
+  setPanelHTML(`<div class="panel-title">Rotate & flip</div>
     <div class="panel-tip">Fix sideways or upside-down footage, or flip it like a mirror.</div>
     <div class="field"><div class="field-label"><span>Rotate</span><span class="val">${state.rotate} deg</span></div><div class="btn-row"><button class="chip" id="rotLeft">Rotate left</button><button class="chip" id="rotRight">Rotate right</button></div></div>
-    <div class="field"><div class="field-label"><span>Flip</span></div><div class="btn-row"><button class="chip ${state.flipH?'active':''}" id="flipH">Flip horizontal</button><button class="chip ${state.flipV?'active':''}" id="flipV">Flip vertical</button></div></div>`;
+    <div class="field"><div class="field-label"><span>Flip</span></div><div class="btn-row"><button class="chip ${state.flipH?'active':''}" id="flipH">Flip horizontal</button><button class="chip ${state.flipV?'active':''}" id="flipV">Flip vertical</button></div></div>`);
   $('#rotLeft').onclick=()=>{ state.rotate=(state.rotate+270)%360; onTransformChange(); };
   $('#rotRight').onclick=()=>{ state.rotate=(state.rotate+90)%360; onTransformChange(); };
   $('#flipH').onclick=()=>{ state.flipH=!state.flipH; onTransformChange(); };
@@ -579,72 +657,104 @@ function renderTransformPanel(){
 function onTransformChange(){ resizeCanvasForPreview(); renderTransformPanel(); if(!state.isPlaying) drawStaticFrame(); }
 
 function renderAudioPanel(){
-  panel.innerHTML=`<div class="panel-title">Audio</div>
+  setPanelHTML(`<div class="panel-title">Audio</div>
     <div class="panel-tip">Adjust how loud your video's original audio plays in the final export.</div>
     <div class="field"><div class="field-label"><span>Volume</span><span class="val">${state.volume}%</span></div><input type="range" min="0" max="100" value="${state.volume}" id="volSlider"></div>
-    <button class="chip ${state.muted?'active':''}" id="muteToggle" style="width:100%; justify-content:center; display:flex;">${state.muted ? 'Unmute' : 'Mute video'}</button>`;
+    <button class="chip ${state.muted?'active':''}" id="muteToggle" style="width:100%; justify-content:center; display:flex;">${state.muted ? 'Unmute' : 'Mute video'}</button>`);
   $('#volSlider').oninput=(e)=>{ state.volume=+e.target.value; state.muted=false; if(state.gainNode) state.gainNode.gain.value=state.volume/100; quickVol.value=state.volume; renderAudioPanel(); };
   $('#muteToggle').onclick=()=>{ state.muted=!state.muted; if(state.gainNode) state.gainNode.gain.value=state.muted?0:state.volume/100; renderAudioPanel(); };
 }
 function syncAudioPanelUI(){ if(state.activeTool==='audio') renderAudioPanel(); }
 
-canvas.addEventListener('mousedown', e=>{
-  if(!state.videoLoaded || state.texts.length===0) return;
+/* ---------- CANVAS INTERACTIONS (mouse + touch) ---------- */
+function getCanvasPos(e){
   const rect=canvas.getBoundingClientRect();
-  const scaleX=canvas.width/rect.width, scaleY=canvas.height/rect.height;
-  const px=(e.clientX-rect.left)*scaleX, py=(e.clientY-rect.top)*scaleY;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x:(clientX-rect.left)*(canvas.width/rect.width), y:(clientY-rect.top)*(canvas.height/rect.height), clientX, clientY };
+}
+
+canvas.addEventListener('mousedown', onCanvasDown);
+canvas.addEventListener('touchstart', onCanvasDown, {passive:false});
+function onCanvasDown(e){
+  if(!state.videoLoaded || state.texts.length===0) return;
+  if(e.type==='touchstart') e.preventDefault();
+  const pos=getCanvasPos(e);
   let hit=null;
   for(let i=state.texts.length-1;i>=0;i--){
     const t=state.texts[i];
     const box=measureTextBox(ctx,t,canvas.width,canvas.height);
-    if(px>=box.x && px<=box.x+box.w && py>=box.y && py<=box.y+box.h){ hit=t; break; }
+    if(pos.x>=box.x && pos.x<=box.x+box.w && pos.y>=box.y && pos.y<=box.y+box.h){ hit=t; break; }
   }
   if(hit){
     state.selectedTextId=hit.id;
-    state.draggingText={ id:hit.id, offX:px/canvas.width-hit.xFrac, offY:py/canvas.height-hit.yFrac };
+    state.draggingText={ id:hit.id, offX:pos.x/canvas.width-hit.xFrac, offY:pos.y/canvas.height-hit.yFrac };
     if(state.activeTool==='text') renderTextPanel();
     else setActiveTool('text');
     drawStaticFrame();
   }
-});
-window.addEventListener('mousemove', e=>{
+}
+
+window.addEventListener('mousemove', onCanvasMove);
+window.addEventListener('touchmove', onCanvasMove, {passive:false});
+function onCanvasMove(e){
   if(!state.draggingText) return;
+  if(e.type==='touchmove') e.preventDefault();
   const rect=canvas.getBoundingClientRect();
-  const px=(e.clientX-rect.left)/rect.width, py=(e.clientY-rect.top)/rect.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const px=(clientX-rect.left)/rect.width, py=(clientY-rect.top)/rect.height;
   const t=state.texts.find(x=>x.id===state.draggingText.id);
   if(t){ t.xFrac=clamp(px-state.draggingText.offX,0,1); t.yFrac=clamp(py-state.draggingText.offY,0,1); if(!state.isPlaying) drawStaticFrame(); }
-});
-window.addEventListener('mouseup', ()=>{ state.draggingText=null; });
+}
 
+window.addEventListener('mouseup', ()=>{ state.draggingText=null; });
+window.addEventListener('touchend', ()=>{ state.draggingText=null; });
+
+/* ---------- TIMELINE ---------- */
 function updateTrimUI(){
   if(!state.videoLoaded) return;
   const sFrac=state.trimStart/state.duration*100, eFrac=state.trimEnd/state.duration*100;
   maskLeft.style.width=sFrac+'%'; maskRight.style.width=(100-eFrac)+'%';
   handleLeft.style.left=sFrac+'%'; handleRight.style.left=eFrac+'%';
   selBorder.style.left=sFrac+'%'; selBorder.style.width=(eFrac-sFrac)+'%';
-  trimReadout.textContent=`Keeping ${fmtTime(state.trimStart)} - ${fmtTime(state.trimEnd)} - Clip length ${fmtTime(state.trimEnd-state.trimStart)}`;
+  trimReadout.textContent=`Keeping ${fmtTime(state.trimStart)} - ${fmtTime(state.trimEnd)} · Clip length ${fmtTime(state.trimEnd-state.trimStart)}`;
 }
 
 function trackDrag(handleEl, onMove){
-  handleEl.addEventListener('mousedown', e=>{
+  function onDown(e){
     e.preventDefault(); e.stopPropagation();
-    function move(ev){ const rect=timelineTrack.getBoundingClientRect(); const frac=clamp((ev.clientX-rect.left)/rect.width,0,1); onMove(frac*state.duration); }
-    function up(){ window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); }
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-  });
+    function onMoveWin(ev){
+      const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+      const rect=timelineTrack.getBoundingClientRect();
+      const frac=clamp((clientX-rect.left)/rect.width,0,1);
+      onMove(frac*state.duration);
+    }
+    function onUpWin(){ window.removeEventListener('mousemove', onMoveWin); window.removeEventListener('mouseup', onUpWin); window.removeEventListener('touchmove', onMoveWin); window.removeEventListener('touchend', onUpWin); }
+    window.addEventListener('mousemove', onMoveWin);
+    window.addEventListener('mouseup', onUpWin);
+    window.addEventListener('touchmove', onMoveWin, {passive:false});
+    window.addEventListener('touchend', onUpWin);
+  }
+  handleEl.addEventListener('mousedown', onDown);
+  handleEl.addEventListener('touchstart', onDown, {passive:false});
 }
 trackDrag(handleLeft, t=>{ state.trimStart=clamp(t,0,state.trimEnd-0.1); updateTrimUI(); if(state.activeTool==='trim') renderTrimPanel(); });
 trackDrag(handleRight, t=>{ state.trimEnd=clamp(t,state.trimStart+0.1,state.duration); updateTrimUI(); if(state.activeTool==='trim') renderTrimPanel(); });
 
-timelineTrack.addEventListener('click', e=>{
+timelineTrack.addEventListener('click', onTrackClick);
+timelineTrack.addEventListener('touchend', onTrackClick);
+function onTrackClick(e){
   if(!state.videoLoaded) return;
-  if(e.target===handleLeft || e.target===handleRight) return;
+  const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
   const rect=timelineTrack.getBoundingClientRect();
-  const frac=clamp((e.clientX-rect.left)/rect.width,0,1);
+  if(clientX<rect.left || clientX>rect.right) return;
+  const frac=clamp((clientX-rect.left)/rect.width,0,1);
   const t=clamp(frac*state.duration, state.trimStart, state.trimEnd);
   state.video.currentTime=t; updateTimeUI(); if(!state.isPlaying) drawStaticFrame();
-});
+}
 
+/* ---------- THUMBNAILS ---------- */
 async function generateThumbnails(){
   thumbStrip.innerHTML='';
   const tv=state.thumbVideo;
@@ -770,7 +880,11 @@ async function runExport(){
   drawStaticFrame();
 }
 
-window.addEventListener('resize', ()=>{ if(state.videoLoaded){ resizeCanvasForPreview(); generateThumbnails(); drawStaticFrame(); } });
+window.addEventListener('resize', ()=>{
+  if(state.videoLoaded){ resizeCanvasForPreview(); generateThumbnails(); drawStaticFrame(); }
+  if(!isMobile()) closePanel();
+});
+
 renderPanel();
 updatePlayIcon();
 })();
